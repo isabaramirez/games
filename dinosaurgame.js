@@ -1,4 +1,3 @@
-export default async function startDinoGame() {
   (async () => {
   // ---------- IMPORTS FIREBASE ----------
   const [
@@ -441,4 +440,3 @@ export default async function startDinoGame() {
   puntajeDiv.textContent = "Puntaje: " + puntaje;
   mostrarToast("Juego cargado — usa WASD, E, Q, X. + oculta GUI, ç la muestra.");
 })();
-}
