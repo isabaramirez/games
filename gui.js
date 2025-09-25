@@ -1,4 +1,3 @@
-// gameLauncher.js
 (() => {
   if (window.__gameLauncherActive) return;
   window.__gameLauncherActive = true;
@@ -7,17 +6,17 @@
   const overlay = document.createElement("div");
   Object.assign(overlay.style, {
     position: "fixed",
-    top: 0,
-    left: 0,
+    top: "0",
+    left: "0",
     width: "100%",
     height: "100%",
-    background: "rgba(0,0,0,0.6)",
-    zIndex: 2147483647,
+    background: "rgba(0,0,0,0.7)",
+    zIndex: "2147483647",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: "sans-serif"
+    fontFamily: "sans-serif",
   });
   document.body.appendChild(overlay);
 
@@ -27,21 +26,21 @@
   overlay.appendChild(title);
 
   const container = document.createElement("div");
-  Object.assign(container.style, {
-    display: "flex",
-    gap: "20px"
-  });
+  container.style.display = "flex";
+  container.style.flexDirection = "column";
+  container.style.gap = "12px";
+  container.style.marginTop = "20px";
   overlay.appendChild(container);
 
   // Definir juegos
   const games = [
     { 
       name: "Web Invaders", 
-      url: "https://cdn.jsdelivr.net/gh/isabaramirez/games@main/webinvaders.js" 
+      url: "https://cdn.jsdelivr.net/gh/isabaramirez/games@main/webinvaders.js"
     },
     { 
       name: "Dinosaur Game", 
-      url: "https://cdn.jsdelivr.net/gh/isabaramirez/games@main/dinosaurgame.js" 
+      url: "https://cdn.jsdelivr.net/gh/isabaramirez/games@main/dinosaurgame.js"
     }
   ];
 
@@ -49,22 +48,21 @@
     const btn = document.createElement("button");
     btn.textContent = game.name;
     Object.assign(btn.style, {
-      padding: "12px 20px",
+      padding: "12px 24px",
       fontSize: "16px",
       borderRadius: "8px",
       cursor: "pointer",
       border: "none",
-      background: "#fff"
+      background: "#fff",
+      color: "#000",
+      fontWeight: "bold"
     });
     container.appendChild(btn);
 
     btn.onclick = async () => {
       try {
         overlay.remove(); // Borra la GUI
-        const module = await import(game.url);
-        if (module.default) {
-          await module.default(); // Llama a la función principal si existe
-        }
+        await import(game.url);
         console.log(game.name + " cargado.");
       } catch (err) {
         console.error("❌ Error cargando el juego:", err);
