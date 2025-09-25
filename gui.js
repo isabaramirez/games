@@ -54,7 +54,7 @@
       cursor: "pointer",
       border: "none",
       background: "#fff",
-      color: "#000",
+      color: "#000", // Texto negro
       fontWeight: "bold"
     });
     container.appendChild(btn);
