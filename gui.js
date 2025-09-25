@@ -33,7 +33,7 @@
   // --- Juegos ---
   const games = [
     { name: "Web Invaders", url: "https://cdn.jsdelivr.net/gh/isabaramirez/games@main/webinvaders.js" },
-    { name: "Dinosaur Game", url: null } // null para mostrar mensaje
+    { name: "Dinosaur Game", url: "https://raw.githubusercontent.com/isabaramirez/games/refs/heads/main/dinosaurgame.js" }
   ];
 
   games.forEach(game => {
@@ -51,8 +51,9 @@
     container.appendChild(btn);
 
     btn.onclick = async () => {
-      if (!game.url) {
-        alert("Para cargar el Dinosaurio ve a:\nhttps://raw.githubusercontent.com/isabaramirez/games/refs/heads/main/dinosaurgame.js");
+      if (!game.url.includes("cdn.jsdelivr")) {
+        alert("Para cargar el Dinosaurio ve a:\n" + game.url);
+        console.log("Dinosaur Game URL:", game.url);
         return;
       }
       try {
