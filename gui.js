@@ -1,21 +1,24 @@
+// gameLauncher.js
 (() => {
   if (window.__gameLauncherActive) return;
   window.__gameLauncherActive = true;
 
   // Overlay
   const overlay = document.createElement("div");
-  overlay.style.position = "fixed";
-  overlay.style.top = 0;
-  overlay.style.left = 0;
-  overlay.style.width = "100%";
-  overlay.style.height = "100%";
-  overlay.style.background = "rgba(0,0,0,0.6)";
-  overlay.style.zIndex = 2147483647;
-  overlay.style.display = "flex";
-  overlay.style.flexDirection = "column";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-  overlay.style.fontFamily = "sans-serif";
+  Object.assign(overlay.style, {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.6)",
+    zIndex: 2147483647,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "sans-serif"
+  });
   document.body.appendChild(overlay);
 
   const title = document.createElement("h2");
@@ -24,8 +27,10 @@
   overlay.appendChild(title);
 
   const container = document.createElement("div");
-  container.style.display = "flex";
-  container.style.gap = "20px";
+  Object.assign(container.style, {
+    display: "flex",
+    gap: "20px"
+  });
   overlay.appendChild(container);
 
   // Definir juegos
@@ -36,7 +41,7 @@
     },
     { 
       name: "Dinosaur Game", 
-      url: "https://cdn.jsdelivr.net/gh/isabaramirez/games@main/dinosaur.js" 
+      url: "https://cdn.jsdelivr.net/gh/isabaramirez/games@main/dinosaurgame.js" 
     }
   ];
 
@@ -57,6 +62,9 @@
       try {
         overlay.remove(); // Borra la GUI
         const module = await import(game.url);
+        if (module.default) {
+          await module.default(); // Llama a la función principal si existe
+        }
         console.log(game.name + " cargado.");
       } catch (err) {
         console.error("❌ Error cargando el juego:", err);
