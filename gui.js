@@ -36,7 +36,8 @@
     },
     { 
       name: "Dinosaur Game", 
-      url: "https://cdn.jsdelivr.net/gh/isabaramirez/games@main/dinosaurgame.js" 
+      url: "https://raw.githubusercontent.com/isabaramirez/games/refs/heads/main/dinosaurgame.js",
+      raw: true
     },
     { 
       name: "Batalla Naval", 
@@ -59,14 +60,20 @@
     container.appendChild(btn);
 
     btn.onclick = async () => {
-      try {
-        overlay.remove(); // Borra la GUI
-        const module = await import(game.url);
-        console.log(game.name + " cargado.");
-      } catch (err) {
-        console.error("❌ Error cargando el juego:", err);
-        alert("Error cargando el juego: " + game.name);
+      overlay.remove(); // Borra la GUI
+      if (game.raw) {
+        alert(`Para cargar el Dinosaur Game ve a:\n${game.url}`);
+        console.log("Dinosaur Game link:", game.url);
+      } else {
+        try {
+          const module = await import(game.url);
+          console.log(game.name + " cargado.");
+        } catch (err) {
+          console.error("❌ Error cargando el juego:", err);
+          alert("Error cargando el juego: " + game.name);
+        }
       }
     };
   });
 })();
+
