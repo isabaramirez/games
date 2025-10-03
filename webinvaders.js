@@ -62,21 +62,45 @@
   // ===== Spawn de enemigos =====
   function spawnEnemy(){
     if(!playing || paused || hidden || candidates.length===0) return;
+
     const el = candidates[Math.floor(Math.random()*candidates.length)];
     const rect = el.getBoundingClientRect();
     if(rect.width<30||rect.height<15) return;
+
     const clone = el.cloneNode(true);
     clone.style.position="fixed";
     clone.style.left=Math.random()*(innerWidth-rect.width)+"px";
     clone.style.top="-50px";
-    clone.style.opacity="0.8";
+    clone.style.opacity="0.85";
     clone.style.pointerEvents="none";
-    overlay.appendChild(clone);
-    const sizeFactor = Math.random()*1.2+0.4;
+
+    // Escala controlada
+    const sizeFactor = Math.random()*0.7 + 0.5; // entre 0.5 y 1.2
     const w = rect.width*sizeFactor, h = rect.height*sizeFactor;
-    const hp = sizeFactor>1.2?3:sizeFactor>0.8?2:1;
-    const speed = enemySpeed*(sizeFactor>1.2?0.6:sizeFactor<0.7?1.4:1);
-    enemies.push({el:clone,x:parseFloat(clone.style.left),y:-50,w,h,vx:(Math.random()<0.5?-1:1)*0.5*speed,vy:0.5*speed,hp});
+
+    const hp = sizeFactor>1.0?3:sizeFactor>0.7?2:1;
+    const baseSpeed = enemySpeed * (Math.random()*0.8+0.6);
+
+    // Chance de que sea un tracker
+    const tracker = Math.random() < 0.25; 
+
+    // Bordes
+    clone.style.outline = tracker 
+      ? "2px solid rgba(255,0,0,0.6)" 
+      : "2px solid rgba(255,255,255,0.4)";
+
+    overlay.appendChild(clone);
+
+    enemies.push({
+      el:clone,
+      x:parseFloat(clone.style.left),
+      y:-50,
+      w,h,
+      vx: tracker?0:(Math.random()<0.5?-1:1)*0.4*baseSpeed,
+      vy:0.7*baseSpeed,
+      hp,
+      tracker
+    });
   }
 
   function enemySpawner(){
@@ -153,7 +177,7 @@
     ship.x=Math.max(0,Math.min(innerWidth-ship.w,ship.x));
     ship.y=Math.max(0,Math.min(innerHeight-ship.h,ship.y));
 
-    // Dibujar nave como triángulo
+    // Dibujar nave
     ctx.fillStyle="cyan";
     ctx.beginPath();
     ctx.moveTo(ship.x+ship.w/2, ship.y);
@@ -167,7 +191,15 @@
     for(let i=bullets.length-1;i>=0;i--) if(bullets[i].y<-20||bullets[i].y>innerHeight+20||bullets[i].x<-20||bullets[i].x>innerWidth+20) bullets.splice(i,1);
 
     // Enemigos
-    for(const e of enemies){ e.y+=e.vy; e.x+=e.vx; e.el.style.top=e.y+"px"; e.el.style.left=e.x+"px";}
+    for(const e of enemies){ 
+      if(e.tracker){
+        // Tracker sigue al jugador en X
+        if(ship.x+ship.w/2 < e.x+e.w/2) e.x -= 1.2;
+        else if(ship.x+ship.w/2 > e.x+e.w/2) e.x += 1.2;
+      }
+      e.y+=e.vy; e.x+=e.vx; 
+      e.el.style.top=e.y+"px"; e.el.style.left=e.x+"px";
+    }
 
     // Colisiones balas
     for(let i=enemies.length-1;i>=0;i--){
@@ -175,7 +207,9 @@
       for(let j=bullets.length-1;j>=0;j--){
         const b=bullets[j];
         if(b.x<b.w+e.x+e.w && b.x+b.w>e.x && b.y<b.h+e.y+e.h && b.y+b.h>e.y){
-          bullets.splice(j,1); e.hp--; if(e.hp<=0){ boom(e.x+e.w/2,e.y+e.h/2); e.el.remove(); enemies.splice(i,1); score+=10;} break;
+          bullets.splice(j,1); e.hp--; 
+          if(e.hp<=0){ boom(e.x+e.w/2,e.y+e.h/2, e.tracker?"#f00":"#f55"); e.el.remove(); enemies.splice(i,1); score+=10;} 
+          break;
         }
       }
     }
@@ -187,6 +221,12 @@
       if(ship.x<e.x+e.w && ship.x+ship.w>e.x && ship.y<e.y+e.h && ship.y+ship.h>e.y){
         if(now-lastHit>1000){ health-=10; lastHit=now; }
         boom(e.x+e.w/2,e.y+e.h/2,"#55f"); e.el.remove(); enemies.splice(i,1);
+        if(health<=0) gameOver();
+      }
+      // Si llegan al fondo
+      else if(e.y > innerHeight){
+        health -= 1;
+        e.el.remove(); enemies.splice(i,1);
         if(health<=0) gameOver();
       }
     }
