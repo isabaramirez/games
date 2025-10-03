@@ -62,42 +62,43 @@
   // ===== Spawn de enemigos =====
   function spawnEnemy(){
     if(!playing || paused || hidden || candidates.length===0) return;
-
     const el = candidates[Math.floor(Math.random()*candidates.length)];
     const rect = el.getBoundingClientRect();
-    if(rect.width<30||rect.height<15) return;
+
+    // Evitar enemigos muy pequeños
+    if(rect.width < 30 || rect.height < 15) return;
 
     const clone = el.cloneNode(true);
     clone.style.position="fixed";
     clone.style.left=Math.random()*(innerWidth-rect.width)+"px";
     clone.style.top="-50px";
-    clone.style.opacity="0.85";
+    clone.style.opacity="0.9";
     clone.style.pointerEvents="none";
-
-    // Escala controlada
-    const sizeFactor = Math.random()*0.7 + 0.5; // entre 0.5 y 1.2
-    const w = rect.width*sizeFactor, h = rect.height*sizeFactor;
-
-    const hp = sizeFactor>1.0?3:sizeFactor>0.7?2:1;
-    const baseSpeed = enemySpeed * (Math.random()*0.8+0.6);
-
-    // Chance de que sea un tracker
-    const tracker = Math.random() < 0.25; 
-
-    // Bordes
-    clone.style.outline = tracker 
-      ? "2px solid rgba(255,0,0,0.6)" 
-      : "2px solid rgba(255,255,255,0.4)";
-
+    clone.style.border="2px solid rgba(255,255,255,0.5)";
     overlay.appendChild(clone);
 
+    // Tamaño controlado (entre 40px y 120px)
+    const sizeFactor = Math.random()*1.2+0.4;
+    let w = rect.width*sizeFactor, h = rect.height*sizeFactor;
+    w = Math.max(40, Math.min(120, w));
+    h = Math.max(40, Math.min(120, h));
+
+    // Tipo de enemigo: normal o perseguidor
+    const tracker = Math.random() < 0.2; // 20% de probabilidad
+    if (tracker) {
+      clone.style.border="2px solid rgba(255,0,0,0.7)";
+    }
+
+    const hp = tracker ? 3 : (w>100?3:w>70?2:1);
+    const speed = enemySpeed*(tracker?1.2:(w>100?0.6:w<50?1.4:1));
+
     enemies.push({
-      el:clone,
-      x:parseFloat(clone.style.left),
-      y:-50,
+      el: clone,
+      x: parseFloat(clone.style.left),
+      y: -50,
       w,h,
-      vx: tracker?0:(Math.random()<0.5?-1:1)*0.4*baseSpeed,
-      vy:0.7*baseSpeed,
+      vx: tracker?0:(Math.random()<0.5?-1:1)*0.5*speed,
+      vy: tracker?1*speed:0.5*speed,
       hp,
       tracker
     });
@@ -177,7 +178,7 @@
     ship.x=Math.max(0,Math.min(innerWidth-ship.w,ship.x));
     ship.y=Math.max(0,Math.min(innerHeight-ship.h,ship.y));
 
-    // Dibujar nave
+    // Dibujar nave como triángulo
     ctx.fillStyle="cyan";
     ctx.beginPath();
     ctx.moveTo(ship.x+ship.w/2, ship.y);
@@ -191,14 +192,23 @@
     for(let i=bullets.length-1;i>=0;i--) if(bullets[i].y<-20||bullets[i].y>innerHeight+20||bullets[i].x<-20||bullets[i].x>innerWidth+20) bullets.splice(i,1);
 
     // Enemigos
-    for(const e of enemies){ 
+    for(const e of enemies){
       if(e.tracker){
-        // Tracker sigue al jugador en X
-        if(ship.x+ship.w/2 < e.x+e.w/2) e.x -= 1.2;
-        else if(ship.x+ship.w/2 > e.x+e.w/2) e.x += 1.2;
+        const dx = ship.x - e.x, dy = ship.y - e.y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist>0){ e.x += (dx/dist)*e.vy; e.y += (dy/dist)*e.vy; }
+      } else {
+        e.y+=e.vy; e.x+=e.vx;
       }
-      e.y+=e.vy; e.x+=e.vx; 
       e.el.style.top=e.y+"px"; e.el.style.left=e.x+"px";
+
+      // Si llega abajo → perder vida
+      if(e.y > innerHeight){
+        health -= 1;
+        e.el.remove();
+        enemies.splice(enemies.indexOf(e),1);
+        if(health <= 0) gameOver();
+      }
     }
 
     // Colisiones balas
@@ -223,12 +233,6 @@
         boom(e.x+e.w/2,e.y+e.h/2,"#55f"); e.el.remove(); enemies.splice(i,1);
         if(health<=0) gameOver();
       }
-      // Si llegan al fondo
-      else if(e.y > innerHeight){
-        health -= 1;
-        e.el.remove(); enemies.splice(i,1);
-        if(health<=0) gameOver();
-      }
     }
 
     // Explosiones
@@ -245,4 +249,3 @@
 
   showMenu();
 })();
-
